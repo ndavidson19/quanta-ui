@@ -1,0 +1,20 @@
+export const ARIMA = (params) => console.log('ARIMA model created with params:', params);
+export const MovingAverage = (params) => console.log('Moving Average created with params:', params);
+export const ExponentialSmoothing = (params) => console.log('Exponential Smoothing created with params:', params);
+export const HoltWinter = (params) => console.log('Holt Winter created with params:', params);
+export const Prophet = (params) => console.log('Prophet model created with params:', params);
+export const LSTM = (params) => console.log('LSTM model created with params:', params);
+export const GRU = (params) => console.log('GRU model created with params:', params);
+export const RNN = (params) => console.log('RNN model created with params:', params);
+export const CNN = (params) => console.log('CNN model created with params:', params);
+export const AR = (params) => console.log('AR model created with params:', params);
+export const VAR = (params) => console.log('VAR model created with params:', params);
+export const SARIMA = (params) => console.log('SARIMA model created with params:', params);
+export const SARIMAX = (params) => console.log('SARIMAX model created with params:', params);
+export const VARMAX = (params) => console.log('VARMAX model created with params:', params);
+export const GARCH = (params) => console.log('GARCH model created with params:', params);
+export const ARCH = (params) => console.log('ARCH model created with params:', params);
+export const EWMA = (params) => console.log('EWMA model created with params:', params);
+export const EWMAVariance = (params) => console.log('EWMA Variance model created with params:', params);
+export const EWMAVolatility = (params) => console.log('EWMA Volatility model created with params:', params);
+// Add more mock functions as needed
