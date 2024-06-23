@@ -12,6 +12,7 @@ import ReactFlow, {
   NodeProps,
   EdgeProps,
   useStoreApi,
+  Handle,
   Position,
   BaseEdge,
   EdgeLabelRenderer,
@@ -107,15 +108,23 @@ const prebuiltStrategies = [
   // Add more pre-built strategies
 ];
 
-const NodeComponent = ({ data }: NodeProps) => {
+const NodeComponent = ({ id, data }: NodeProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const { deleteElements } = useReactFlow();
+
+  const handleRemove = () => {
+    deleteElements({ nodes: [{ id }] });
+  };
   return (
     <div className={`p-2 rounded shadow ${data.bgColor}`}>
-      <strong>{data.type}:</strong> {data.label}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="ml-2" onClick={() => data.onEdit(data.id)}>Edit</Button>
-        </DialogTrigger>
-      </Dialog>
+      <Handle type="target" position={Position.Left} />
+        <strong>{data.type}:</strong> {data.label}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="ml-2" onClick={() => data.onEdit(data.id)}>Edit</Button>
+          </DialogTrigger>
+        </Dialog>
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 };
@@ -128,6 +137,7 @@ const nodeTypes = {
 };
 
 const StrategyBuilderPage = () => {
+  
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedSourceNode, setSelectedSourceNode] = useState<string | null>(null);
@@ -138,6 +148,7 @@ const StrategyBuilderPage = () => {
   const [codeView, setCodeView] = useState('');
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [backtestResults, setBacktestResults] = useState(null);
+  // const store = useStoreApi(); breaking change
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -166,7 +177,8 @@ const StrategyBuilderPage = () => {
         },
         parameters: {}
       },
-      ...nodeDefaults,
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
     };
     console.log('Adding new node:', newNode);
     setNodes((nds) => [...nds, newNode]);
