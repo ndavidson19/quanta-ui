@@ -137,7 +137,8 @@ const nodeTypes = {
 };
 
 const StrategyBuilderPage = () => {
-  
+  const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedSourceNode, setSelectedSourceNode] = useState<string | null>(null);
@@ -150,13 +151,44 @@ const StrategyBuilderPage = () => {
   const [backtestResults, setBacktestResults] = useState(null);
   // const store = useStoreApi(); breaking change
 
+  const addToHistory = useCallback(() => {
+    setHistory(prev => [...prev.slice(0, historyIndex + 1), { nodes, edges }]);
+    setHistoryIndex(prev => prev + 1);
+  }, [nodes, edges, historyIndex]);
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1];
+      setNodes(prevState.nodes);
+      setEdges(prevState.edges);
+      setHistoryIndex(prev => prev - 1);
+    }
+  }, [history, historyIndex, setNodes, setEdges]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+        event.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo]);
+
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      setEdges(eds => {
+        const newEdges = addEdge(params, eds);
+        addToHistory();
+        return newEdges;
+      });
+    },
+    [setEdges, addToHistory]
   );
 
+
   const addNode = useCallback(() => {
-    console.log('addNode called', { selectedComponent, selectedCategory });
     if (!selectedComponent || !selectedCategory) {
       console.warn('Cannot add node: selectedComponent or selectedCategory is not set');
       return;
@@ -177,12 +209,14 @@ const StrategyBuilderPage = () => {
         },
         parameters: {}
       },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
+      ...nodeDefaults,
     };
-    console.log('Adding new node:', newNode);
-    setNodes((nds) => [...nds, newNode]);
-  }, [selectedComponent, selectedCategory, nodes, setNodes]);
+    setNodes(nds => {
+      const newNodes = [...nds, newNode];
+      addToHistory();
+      return newNodes;
+    });
+  }, [selectedComponent, selectedCategory, nodes, setNodes, addToHistory]);
 
   const getClosestEdge = useCallback((node: Node) => {
     const { nodeInternals } = store.getState();
@@ -376,8 +410,14 @@ const StrategyBuilderPage = () => {
                 edges={edges}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
+                onNodesChange={(changes) => {
+                  onNodesChange(changes);
+                  addToHistory();
+                }}
+                onEdgesChange={(changes) => {
+                  onEdgesChange(changes);
+                  addToHistory();
+                }}
                 onConnect={onConnect}
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}
